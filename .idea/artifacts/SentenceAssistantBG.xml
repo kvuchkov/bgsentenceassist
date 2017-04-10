@@ -1,0 +1,23 @@
+<component name="ArtifactManager">
+  <artifact type="javafx" name="SentenceAssistantBG">
+    <output-path>$PROJECT_DIR$/out/artifacts</output-path>
+    <properties id="javafx-properties">
+      <options>
+        <option name="appClass" value="org.bglow.assistant.Main" />
+        <option name="description" value="" />
+        <option name="height" value="600" />
+        <option name="htmlPlaceholderId" value="" />
+        <option name="nativeBundle" value="all" />
+        <option name="title" value="Punishment Grouping" />
+        <option name="vendor" value="Kiril Vuchkov" />
+        <option name="version" value="0.1" />
+        <option name="width" value="900" />
+      </options>
+    </properties>
+    <root id="root">
+      <element id="archive" name="SentenceAssist.jar">
+        <element id="module-output" name="SentenceAssistantBG" />
+      </element>
+    </root>
+  </artifact>
+</component>

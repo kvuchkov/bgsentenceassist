@@ -1,0 +1,27 @@
+caption {
+    text-align: left;
+    text-transform: uppercase;
+    padding:5px;
+    margin-top:10px;
+}
+table {
+    border-collapse:collapse;
+}
+table td, table th {
+    border:1px solid #ccc;
+    padding:5px;
+}
+table th {
+    text-align:left;
+    font-weight:normal;
+    background-color:#e6e6e6;
+}
+table td.punishment {
+    color:#999;
+    text-decoration:line-through;
+}
+
+table td.punishment.active {
+    color:black;
+    text-decoration:underline;
+}
