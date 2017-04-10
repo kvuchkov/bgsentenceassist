@@ -22,9 +22,9 @@ public class SentencesController {
     private static DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
     final ObservableList<Sentence> data = FXCollections.observableArrayList(
-            new Sentence("К-1233-1", LocalDate.of(2014, 6, 10), LocalDate.of(2014, 6, 27), new Punishment(Period.ofYears(1), Punishment.Type.Probation)),
-            new Sentence("К-3214-2", LocalDate.of(2014, 5, 5), LocalDate.of(2014, 10, 27), new Punishment(Period.ofMonths(6), Punishment.Type.Jail)),
-            new Sentence("К-4321-3", LocalDate.of(2014, 8, 30), LocalDate.of(2015, 3, 31), new Punishment(Period.ofMonths(6), Punishment.Type.Jail))
+//            new Sentence("К-1233-1", LocalDate.of(2014, 6, 10), LocalDate.of(2014, 6, 27), new Punishment(Period.ofYears(1), Punishment.Type.Probation)),
+//            new Sentence("К-3214-2", LocalDate.of(2014, 5, 5), LocalDate.of(2014, 10, 27), new Punishment(Period.ofMonths(6), Punishment.Type.Jail)),
+//            new Sentence("К-4321-3", LocalDate.of(2014, 8, 30), LocalDate.of(2015, 3, 31), new Punishment(Period.ofMonths(6), Punishment.Type.Jail))
     );
 
 
