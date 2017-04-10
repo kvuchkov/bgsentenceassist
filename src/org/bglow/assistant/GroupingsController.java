@@ -30,9 +30,8 @@ public class GroupingsController {
     }
 
     public void calculate() {
-        logic.generate();
         try {
-            renderGroups();
+            renderGroups(logic.generate());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -48,7 +47,7 @@ public class GroupingsController {
         }
     }
 
-    private void renderGroups() throws IOException {
+    private void renderGroups(List<PunishmentGrouping.Grouping> groupings) throws IOException {
         StringBuilder html = new StringBuilder();
         html.append("<html>");
         html.append("<head>");
@@ -66,7 +65,7 @@ public class GroupingsController {
         html.append("<body>");
         final int[] num = new int[1];
 
-        logic.groupings.forEach(grouping -> {
+        groupings.forEach(grouping -> {
             html.append("<table>");
             html.append("<caption>Вариант " + ++num[0] + " </caption>");
             int groupNumber = 1;

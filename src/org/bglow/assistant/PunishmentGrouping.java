@@ -1,68 +1,203 @@
 package org.bglow.assistant;
 
-import javafx.scene.Group;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.time.Period;
+import java.util.*;
 
 /**
  * Created by kiko on 3/10/2017.
  */
 
 public class PunishmentGrouping {
-    private Node[] nodes;
-    HashSet<Grouping> groupings;
+    private ArrayList<Node> nodes;
 
-    public PunishmentGrouping(List<Sentence> sentences) {
-        this.nodes = new Node[sentences.size()];
-        for (int i = 0; i < nodes.length; i++) {
-            nodes[i] = new Node(sentences.get(i));
-        }
-    }
+    static class Traverser {
+        ArrayList<Node> graph;
+        HashSet<Node> used;
+        ArrayList<HashSet<Node>> groups;
+        ArrayList<Node> conflicts;
 
+        int max = 0;
 
-    boolean next(int[] dist) {
-        int max = dist.length;
-        for (int i = dist.length - 1; i >= 0; i--) {
-            dist[i]++;
-            if (dist[i] > max) {
-                dist[i] = 0;
-            } else
-                return true;
+        int[] dist;
+
+        public Traverser(Collection<Node> graph) {
+            this.graph = new ArrayList<>(graph);
         }
 
-        return false;
-    }
+        void traverse() {
+            used = new HashSet<>();
+            groups = new ArrayList<>();
+            conflicts = new ArrayList<>();
+            for (Node n : graph) {
+                if (!n.locked) {
+                    HashSet<Node> group = new HashSet<>();
+                    used = new HashSet<>();
+                    group.add(n);
+                    if (dsf(n, group)) {
+                        groups.add(group);
+                        group.forEach(node -> node.locked = true);
 
-    boolean check(int[] dist) {
-        for (int i = 0; i < nodes.length; i++) {
-            for (int j = i + 1; j < nodes.length; j++) {
-                if (dist[i] == dist[j] && !nodes[i].isConnectedTo(nodes[j]))
+                    }
+                }
+            }
+            for (Node n : graph) {
+                if (!n.locked)
+                    conflicts.add(n);
+            }
+
+            dist = new int[conflicts.size()];
+            max = conflicts.size() + groups.size();
+
+            prevs.add(generateVariantKey());
+
+            System.out.println();
+        }
+
+        boolean dsf(Node u, HashSet<Node> group) {
+            if (used.contains(u)) return true;
+            used.add(u);
+//            System.out.printf("%s ", u.sentence.getId());
+            for (Node v : u.nbrs) {
+                if (used.contains(v)) continue;
+                if (!tryAdd(group, v))
+                    return false;
+                boolean ok = dsf(v, group);
+                if (!ok)
                     return false;
             }
+
+            return true;
         }
 
-        return true;
+        ArrayList<HashSet<Node>> check() {
+            ArrayList<HashSet<Node>> var = new ArrayList<>();
+            for (HashSet<Node> group : groups) {
+                var.add(new HashSet<>(group));
+            }
+
+            while (var.size() < max) {
+                var.add(new HashSet<>());
+            }
+
+            for (int i = 0; i < conflicts.size(); i++) {
+                int assigned = dist[i];
+                if (!tryAdd(var.get(assigned), conflicts.get(i)))
+                    return null;
+            }
+
+            for (int i = 0; i < conflicts.size(); i++) {
+                HashSet<Node> group = var.get(dist[i]);
+                Node c = conflicts.get(i);
+
+                if (group.size() == 1) {
+                    for (HashSet<Node> otherGroup : var) {
+                        if (group != otherGroup && otherGroup.size() > 0 && tryAdd(otherGroup, c))
+                            return null;
+                    }
+                }
+            }
+
+            for (int i = 0; i < var.size(); i++) {
+                if (var.get(i).isEmpty())
+                    var.remove(i--);
+            }
+
+            return var;
+        }
+
+        private boolean tryAdd(HashSet<Node> group, Node node) {
+            for (Node x : group) {
+                if (!node.isConnectedTo(x)) {
+                    return false;
+                }
+            }
+            group.add(node);
+            return true;
+        }
+
+        HashSet<String> prevs = new HashSet<>();
+
+        boolean next2() {
+            if (next() == false) return false;
+            String key = generateVariantKey();
+            while (prevs.contains(key)) {
+                if (next() == false) return false;
+                key = generateVariantKey();
+            }
+
+            prevs.add(key);
+
+            return true;
+        }
+
+        String generateVariantKey() {
+            int[] map = new int[max];
+            for (int i = 0; i < map.length; i++) map[i] = i < groups.size() ? i : -1;
+            int id = groups.size();
+            int[] n = new int[dist.length];
+            for (int i = 0; i < dist.length; i++) {
+                int x = dist[i];
+                if (map[x] < 0) {
+                    map[x] = id++;
+                }
+                n[i] = map[x];
+            }
+
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int x : n) stringBuilder.append(x + ";");
+            String hashable = stringBuilder.toString();
+            return hashable;
+        }
+
+        boolean next() {
+            for (int i = dist.length - 1; i >= 0; i--) {
+                dist[i]++;
+                if (dist[i] >= max) {
+                    dist[i] = 0;
+                } else
+                    return true;
+            }
+
+            return false;
+        }
     }
 
-    public void generate() {
-        int[] dist = new int[nodes.length];
-        groupings = new HashSet<>();
+
+    public PunishmentGrouping(List<Sentence> sentences) {
+        this.nodes = new ArrayList<>();
+        for (int i = 0; i < sentences.size(); i++) {
+            nodes.add(new Node(sentences.get(i)));
+        }
+
+        for (int i = 0; i < nodes.size(); i++) {
+            for (int j = i + 1; j < nodes.size(); j++) {
+                if (nodes.get(i).isConnectedTo(nodes.get(j))) {
+                    nodes.get(i).nbrs.add(nodes.get(j));
+                    nodes.get(j).nbrs.add(nodes.get(i));
+                }
+            }
+        }
+    }
+
+
+    public List<Grouping> generate() {
+        ArrayList<Grouping> groupings = new ArrayList<>();
+        Traverser t = new Traverser(nodes);
+        t.traverse();
         do {
-            Grouping grouping = new Grouping(dist, nodes);
-            boolean valid = check(dist);
-            if (!valid) continue;
-            if (groupings.contains(grouping)) continue;
-            if (valid) groupings.add(grouping);
-        } while (next(dist));
+            ArrayList<HashSet<Node>> solution = t.check();
+            if(solution != null) {
+                groupings.add(new Grouping(solution));
+            }
+
+        } while (t.next2());
+
+        return groupings;
     }
 
     private static class Node {
         Sentence sentence;
+        boolean locked = false;
 
         Node(Sentence sentence) {
             this.sentence = sentence;
@@ -73,67 +208,32 @@ public class PunishmentGrouping {
                     || sentence.getActDate().compareTo(other.sentence.getActDate()) > 0 && sentence.getActDate().compareTo(other.sentence.getEffectDate()) < 0
                     || other.sentence.getActDate().compareTo(sentence.getActDate()) > 0 && other.sentence.getActDate().compareTo(sentence.getEffectDate()) < 0;
         }
+
+        public ArrayList<Node> nbrs = new ArrayList<>();
     }
 
     public class Grouping {
         ArrayList<ArrayList<Sentence>> groups = new ArrayList<>();
-        private final Node[] nodes;
-        private int[] n;
+        Punishment jailTotal = new Punishment(Period.ofMonths(0), Punishment.Type.Jail);
+        Punishment probationTotal = new Punishment();
 
-        public Grouping(int[] dist, Node[] nodes) {
-            this.nodes = nodes;
-            int[] map = new int[dist.length + 1];
-            int id = 1;
-            n = new int[dist.length];
-            for (int i = 0; i < dist.length; i++) {
-                int x = dist[i];
-                if (map[x] == 0) {
-                    map[x] = id++;
-                    groups.add(new ArrayList<>());
+        public Grouping(ArrayList<HashSet<Node>> solution) {
+            for(HashSet<Node> set : solution) {
+                ArrayList<Sentence> list = new ArrayList<>();
+                Punishment punishment = null;
+                for(Node n : set) {
+                    list.add(n.sentence);
+                    if(punishment == null)
+                        punishment = n.sentence.getPunishment();
+                    else
+                        punishment = Punishment.max(punishment, n.sentence.getPunishment());
                 }
-
-                x = map[x];
-                n[i] = x;
-                groups.get(x - 1).add(nodes[i].sentence);
-            }
-        }
-
-        public Sentence get(int idx) {
-            return nodes[idx].sentence;
-        }
-
-        public void forEach(BiConsumer<Integer, Sentence> consumer) {
-            for (int i = 0; i < n.length; i++) {
-                consumer.accept(n[i], nodes[i].sentence);
-            }
-        }
-
-        void print() {
-            for (int i : n) {
-                System.out.printf("%d", i);
-            }
-            System.out.println();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj instanceof Grouping) {
-                Grouping other = (Grouping) obj;
-                if (other.n.length != n.length) return false;
-                for (int i = 0; i < n.length; i++) {
-                    if (n[i] != other.n[i]) return false;
+                groups.add(list);
+                if(punishment != null) {
+                    Punishment total = punishment.getType() == jailTotal.getType() ? jailTotal : probationTotal;
+                    total.add(punishment);
                 }
-                return true;
-            } else return super.equals(obj);
-        }
-
-        @Override
-        public int hashCode() {
-            int sum = 0;
-            for (int i = 0; i < n.length; i++) {
-                sum += n[i];
             }
-            return sum;
         }
     }
 }

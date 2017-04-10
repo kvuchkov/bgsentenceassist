@@ -17,6 +17,14 @@ public class Punishment implements Comparable<Punishment> {
             return -1;
     }
 
+    public static Punishment max(Punishment a, Punishment b) {
+        return a;
+    }
+
+    public void add(Punishment punishment) {
+        period = (punishment.period.plusMonths(period.getMonths()));
+    }
+
     public enum Type {
         Probation,
         Jail
@@ -24,6 +32,11 @@ public class Punishment implements Comparable<Punishment> {
 
     private Period period;
     private Type type;
+
+    public Punishment() {
+        this.period = Period.ofMonths(0);
+        this.type = Type.Probation;
+    }
 
     public Punishment(Period period, Type type) {
         this.period = period;
