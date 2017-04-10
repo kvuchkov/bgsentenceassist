@@ -67,7 +67,11 @@ public class GroupingsController {
 
         groupings.forEach(grouping -> {
             html.append("<table>");
-            html.append("<caption>Вариант " + ++num[0] + " </caption>");
+            html.append("<caption>Вариант " + ++num[0] + " (");
+            html.append(grouping.jailTotal.toString());
+            html.append(", ");
+            html.append(grouping.probationTotal.toString());
+            html.append(" )</caption>");
             int groupNumber = 1;
             for (ArrayList<Sentence> group : grouping.groups) {
                 Sentence maxSentence = group.get(0);

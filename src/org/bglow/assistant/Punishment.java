@@ -7,6 +7,7 @@ import java.time.Period;
  */
 
 public class Punishment implements Comparable<Punishment> {
+
     @Override
     public int compareTo(Punishment o) {
         if (type == o.type) {
@@ -18,7 +19,7 @@ public class Punishment implements Comparable<Punishment> {
     }
 
     public static Punishment max(Punishment a, Punishment b) {
-        return a;
+        return a.compareTo(b) < 0 ? b : a;
     }
 
     public void add(Punishment punishment) {
@@ -61,13 +62,17 @@ public class Punishment implements Comparable<Punishment> {
 
     @Override
     public String toString() {
+        if(period.isZero())
+            return "-";
+
         StringBuilder sb = new StringBuilder();
         if (period.getYears() > 0) {
             sb.append(String.format("%dг. ", period.getYears()));
         }
-        if (period.getMonths() > 0) {
+        if (period.getMonths() > 0 || period.getYears() == 0) {
             sb.append(String.format("%dм. ", period.getMonths()));
         }
+
         String typeStr = type == Punishment.Type.Probation ? "Пробация" : "ЛОС";
         sb.append(typeStr);
         return sb.toString();

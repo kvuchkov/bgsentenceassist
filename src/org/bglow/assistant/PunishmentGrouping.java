@@ -192,6 +192,8 @@ public class PunishmentGrouping {
 
         } while (t.next2());
 
+        groupings.sort((o1, o2) -> o1.compareTo(o2));
+
         return groupings;
     }
 
@@ -234,6 +236,12 @@ public class PunishmentGrouping {
                     total.add(punishment);
                 }
             }
+        }
+
+        public int compareTo(Grouping o2) {
+            int jc = jailTotal.compareTo(o2.jailTotal);
+            int pc = probationTotal.compareTo(o2.probationTotal);
+            return jc == 0 ? pc : jc;
         }
     }
 }
